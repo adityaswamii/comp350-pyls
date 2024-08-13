@@ -45,8 +45,22 @@ def main(args):
     :return:
         The main function returns various auxiliary functions
     """
+    
+    assert isinstance(args.dirname, str), "dirname should be a string"
+    assert isinstance(args.long_format, bool), "long_format should be a boolean value"
+    assert isinstance(args.filetype, bool), "filetype should be a boolean value"
+    
     results = getDescriptionsOfFilesInDir(args.dirname)
+    
+    assert isinstance(results, list), "results should be a list containing dictionaries"
+    assert all(isinstance(contents, dict) for contents in results), "results should be a list containing dictionaries"
+    
     lines = formatResults(results, args.long_format, args.filetype)
+
+    assert isinstance(lines, list), "lines should be a list containing strings"
+    assert all(isinstance(contents, str) for contents in lines), "lines should be a list containing strings"
+    
+    
     printResults(lines)
 
 
@@ -65,6 +79,8 @@ def getDescriptionsOfFilesInDir(dirname):
         "modtime" = Last modified time of the file as a `datetime` object.
         "filesize" = Number of bytes in the file.
     """
+
+    assert isinstance(dirname, str), "dirname should be a string"
     
     return [
         {
@@ -102,7 +118,12 @@ def formatResults(results, long_format, filetype):
     :return:
         List of strings.
     """
-    
+
+    assert isinstance(long_format, bool), "long_format should be a boolean value"
+    assert isinstance(filetype, bool), "filetype should be a boolean value"
+    assert isinstance(results, list), "results should be a list containing dictionaries"
+    assert all(isinstance(contents, dict) for contents in results), "results should be a list containing dictionaries"
+
     return [
         "2024-08-08 14:12:22  4533 sample-file.pdf",
         "2024-08-07 10:24:32   104 myprog*",
@@ -116,8 +137,11 @@ def printResults(lines):
     :param lines:
         List of strings
     :return:
-                Standard output
+        Standard output
     """
+
+    assert isinstance(lines, list), "lines should be a list containing strings"
+    assert all(isinstance(contents, str) for contents in lines), "lines should be a list containing strings"
     
     for line in lines:
         print(line)
