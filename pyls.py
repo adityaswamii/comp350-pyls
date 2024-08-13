@@ -1,6 +1,6 @@
 import argparse
 import os
-import time
+from datetime import datetime
 
 parser = argparse.ArgumentParser(
     prog="pyls",
@@ -51,17 +51,16 @@ def main(args):
     assert isinstance(args.filetype, bool), "filetype should be a boolean value"
     
     results = getDescriptionsOfFilesInDir(args.dirname)
-    printResults(results)
     
     assert isinstance(results, list), "results should be a list containing dictionaries"
     assert all(isinstance(contents, dict) for contents in results), "results should be a list containing dictionaries"
     
-    #lines = formatResults(results, args.long_format, args.filetype)
+    lines = formatResults(results, args.long_format, args.filetype)
 
-    #assert isinstance(lines, list), "lines should be a list containing strings"
-    #assert all(isinstance(contents, str) for contents in lines), "lines should be a list containing strings"
+    assert isinstance(lines, list), "lines should be a list "
+    assert all(isinstance(contents, str) for contents in lines), "lines should be a list containing strings"
     
-    #printResults(lines)
+    printResults(lines)
 
 
 def getDescriptionsOfFilesInDir(dirname):
@@ -86,18 +85,15 @@ def getDescriptionsOfFilesInDir(dirname):
     results = []
     
     for entry in os.scandir(dirname):
+        mtime = datetime.fromtimestamp(os.path.getmtime(entry))
+        fsize = entry.stat(follow_symlinks=False).st_size
         fname = entry.name
-        
         ftype = 'f'  # It's a file
         if entry.is_dir(follow_symlinks=False):
             ftype = 'd'  # It's a directory
         elif entry.name.endswith('.exe'):
             ftype = 'x'  # It's an executable
-        
-        mtime = time.ctime(os.path.getmtime(entry))
-        
-        fsize = entry.stat(follow_symlinks=False).st_size
-        
+            
         entrydict = {
             "filename": fname,
             "filetype": ftype,
@@ -151,12 +147,25 @@ def formatResults(results, long_format, filetype):
     assert isinstance(results, list), "results should be a list containing dictionaries"
     assert all(isinstance(contents, dict) for contents in results), "results should be a list containing dictionaries"
 
-    if long_format:
-        print()
-    if filetype:
-        print()
+    formatted_lines = []
+    for file_info in results:
+        # Filename
+        line = file_info['filename']
+    
+        # If long format
+        if long_format:
+            assert isinstance(file_info['filesize'], int), "filesize should be an integer" # checks if the if the filesize field in each file information dictionary is an integer.
         
-    return results
+            line = f"{file_info['modtime'].strftime('%Y-%m-%d %H:%M:%S')} {str(file_info['filesize']).rjust(6)} {line}"
+    
+        # If filetype
+        if filetype:
+            line += ' *' if file_info['filetype'] == 'x' else ''
+            line += ' /' if file_info['filetype'] == 'd' else ''
+    
+        formatted_lines.append(line)
+
+    return formatted_lines
 
 
 def printResults(lines):
@@ -169,8 +178,8 @@ def printResults(lines):
         Standard output
     """
 
-    #assert isinstance(lines, list), "lines should be a list containing strings"
-    #assert all(isinstance(contents, str) for contents in lines), "lines should be a list containing strings"
+    assert isinstance(lines, list), "lines should be a list "
+    assert all(isinstance(contents, str) for contents in lines), "lines should be a list containing strings"
     
     for line in lines:
         print(line)
