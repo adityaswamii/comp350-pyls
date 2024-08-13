@@ -1,12 +1,12 @@
 import argparse
-from datetime import datetime
+import os
+import time
 
 parser = argparse.ArgumentParser(
     prog="pyls",
-    description="Lists files and folders in specified directory"
+    description="Lists files and folders in specified directory",
+    epilog="Thanks for using pyls!"
 )
-
-# pyls arguments
 
 parser.add_argument(
     "dirname",
@@ -60,7 +60,6 @@ def main(args):
     assert isinstance(lines, list), "lines should be a list containing strings"
     assert all(isinstance(contents, str) for contents in lines), "lines should be a list containing strings"
     
-    
     printResults(lines)
 
 
@@ -81,27 +80,54 @@ def getDescriptionsOfFilesInDir(dirname):
     """
 
     assert isinstance(dirname, str), "dirname should be a string"
+    assert os.path.exists(dirname), "dirname path does not exist"
     
-    return [
-        {
-            "filename": "file1.txt",
-            "filetype": "f",
-            "modtime": datetime(2024, 8, 8, 10, 12, 22),
-            "filesize": 3658,
-        },
-        {
-            "filename": "pyls",
-            "filetype": "x",
-            "modtime": datetime(2024, 8, 9, 14, 33, 25),
-            "filesize": 2554,
-        },
-        {
-            "filename": "tests",
-            "filetype": "d",
-            "modtime": datetime(2024, 8, 9, 15, 15, 15),
-            "filesize": 355,
-        },
-    ]
+    results = []
+    
+    for entry in os.scandir(dirname):
+        fname = entry.name
+        
+        ftype = 'f' # It's a file
+        if entry.is_dir(follow_symlinks=False):
+            ftype = 'd'  # It's a directory
+        elif os.access(entry.path, os.X_OK):
+            ftype = 'x'  # It's executable
+            
+        mtime = time.ctime(os.path.getmtime(entry))
+        
+        fsize = entry.stat(follow_symlinks=False).st_size
+        
+        entrydict = {
+            "filename": fname,
+            "filetype": ftype,
+            "modtime": mtime,
+            "filesize": fsize,
+        }
+        results.append(entrydict)
+    
+    return results
+    
+    # SAMPLE OUTPUT:
+    # return [
+    #     {
+    #         "filename": "file1.txt",
+    #         "filetype": "f",
+    #         "modtime": datetime(2024, 8, 8, 10, 12, 22),
+    #         "filesize": 3658,
+    #     },
+    #     {
+    #         "filename": "pyls",
+    #         "filetype": "x",
+    #         "modtime": datetime(2024, 8, 9, 14, 33, 25),
+    #         "filesize": 2554,
+    #     },
+    #     {
+    #         "filename": "tests",
+    #         "filetype": "d",
+    #         "modtime": datetime(2024, 8, 9, 15, 15, 15),
+    #         "filesize": 355,
+    #     },
+    # ]
 
 
 def formatResults(results, long_format, filetype):
@@ -124,10 +150,12 @@ def formatResults(results, long_format, filetype):
     assert isinstance(results, list), "results should be a list containing dictionaries"
     assert all(isinstance(contents, dict) for contents in results), "results should be a list containing dictionaries"
 
-    return [
-        "2024-08-08 14:12:22  4533 sample-file.pdf",
-        "2024-08-07 10:24:32   104 myprog*",
-    ]
+    if long_format:
+        print()
+    if filetype:
+        print()
+        
+    return results
 
 
 def printResults(lines):
@@ -145,3 +173,6 @@ def printResults(lines):
     
     for line in lines:
         print(line)
+
+
+main(args)
