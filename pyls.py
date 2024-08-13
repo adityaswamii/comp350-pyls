@@ -51,16 +51,17 @@ def main(args):
     assert isinstance(args.filetype, bool), "filetype should be a boolean value"
     
     results = getDescriptionsOfFilesInDir(args.dirname)
+    printResults(results)
     
     assert isinstance(results, list), "results should be a list containing dictionaries"
     assert all(isinstance(contents, dict) for contents in results), "results should be a list containing dictionaries"
     
-    lines = formatResults(results, args.long_format, args.filetype)
+    #lines = formatResults(results, args.long_format, args.filetype)
 
-    assert isinstance(lines, list), "lines should be a list containing strings"
-    assert all(isinstance(contents, str) for contents in lines), "lines should be a list containing strings"
+    #assert isinstance(lines, list), "lines should be a list containing strings"
+    #assert all(isinstance(contents, str) for contents in lines), "lines should be a list containing strings"
     
-    printResults(lines)
+    #printResults(lines)
 
 
 def getDescriptionsOfFilesInDir(dirname):
@@ -87,12 +88,12 @@ def getDescriptionsOfFilesInDir(dirname):
     for entry in os.scandir(dirname):
         fname = entry.name
         
-        ftype = 'f' # It's a file
+        ftype = 'f'  # It's a file
         if entry.is_dir(follow_symlinks=False):
             ftype = 'd'  # It's a directory
-        elif os.access(entry.path, os.X_OK):
-            ftype = 'x'  # It's executable
-            
+        elif entry.name.endswith('.exe'):
+            ftype = 'x'  # It's an executable
+        
         mtime = time.ctime(os.path.getmtime(entry))
         
         fsize = entry.stat(follow_symlinks=False).st_size
@@ -168,8 +169,8 @@ def printResults(lines):
         Standard output
     """
 
-    assert isinstance(lines, list), "lines should be a list containing strings"
-    assert all(isinstance(contents, str) for contents in lines), "lines should be a list containing strings"
+    #assert isinstance(lines, list), "lines should be a list containing strings"
+    #assert all(isinstance(contents, str) for contents in lines), "lines should be a list containing strings"
     
     for line in lines:
         print(line)
